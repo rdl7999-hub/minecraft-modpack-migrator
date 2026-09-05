@@ -1,0 +1,16 @@
+# indices y salidas que generan las herramientas
+indice-*.json
+hallazgos*.json
+plan*.json
+
+# migraciones aplicadas sobre un pack (van dentro del pack, no aqui)
+migraciones/
+
+# python
+__pycache__/
+*.py[cod]
+
+# sistema
+.DS_Store
+Thumbs.db
+desktop.ini
