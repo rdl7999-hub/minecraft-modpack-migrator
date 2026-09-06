@@ -94,8 +94,13 @@ def veredicto(x: dict, y: dict) -> tuple[str, list[str]]:
                      "vanilla y no dependen del loader. Todo lo demas hay que recrearlo "
                      "o buscar el equivalente para el loader de destino.")
         if ld_y in ("fabric", "quilt") and ld_x in ("forge", "neoforge"):
-            notas.append("Busca si el mod tiene version Fabric, o un equivalente "
-                         "(muchos mods populares existen en los dos).")
+            notas.append("Mira primero si el mod tiene version para el loader de "
+                         "destino: si la tiene, se acabo el problema.")
+        notas.append("Si no hay version para el loader de destino, la via es "
+                     "RECREAR la mecanica escribiendo un mod propio. "
+                     "Ojo: 'buscar una alternativa' casi nunca significa "
+                     "instalar otro mod ajeno parecido; suele significar tener eso "
+                     "mismo en tu pack. Pregunta cual de las dos cosas es.")
     return nivel, notas
 
 

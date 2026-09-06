@@ -160,7 +160,15 @@ Si la feature es código Java, o el veredicto fue ROJO, copiar no es una opción
 - mecánicas simples: `data/<ns>/functions/*.mcfunction` con un `tick.json`
 - estructuras: exportables si los bloques existen en el destino
 
-Sé honesto sobre el límite: un datapack no reproduce una entidad nueva, un sistema de combate ni una GUI. Si la feature es eso, la respuesta correcta es "hay que llevar el mod, y esto es lo que cuesta" o "no se puede".
+Sé honesto sobre el límite: un datapack no reproduce una entidad nueva, un sistema de combate ni una GUI. Si la feature es eso, hay tres respuestas posibles y solo tres:
+
+1. **"Hay que llevar el mod, y esto es lo que cuesta"** — con la lista de la Fase 3.
+2. **"Existe para tu loader"** — si el mismo mod, o un equivalente, tiene versión para el loader de destino, esa es la respuesta barata y hay que darla primero.
+3. **"Hay que escribirlo"** — cuando la mecánica solo existe en el otro loader y no hay equivalente.
+
+**El caso 3 es donde termina esta skill y empieza `modpack-modsmith`**, que escribe mods propios cuadrados con el pack de destino y los prueba antes de entregarlos. Si está instalada, pásale tres cosas: la versión del loader del pack destino (ya está en el índice, campo `version_loader`), qué mecánica hay que recrear, y los números que hayas sacado leyendo el mod original.
+
+Un aviso que conviene dar aquí: cuando alguien pide **"una alternativa"** a un mod, casi nunca quiere que le instales otro mod ajeno parecido. Quiere **eso mismo, en su pack**. Pregunta cuál de las dos cosas es antes de dar por buena la fácil.
 
 ---
 

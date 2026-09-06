@@ -41,6 +41,13 @@ except ModuleNotFoundError:  # pragma: no cover
 # el escaner avisa de 12 mods que estaban perfectos.
 RE_VERSION_MC = re.compile(r"(?<![\d.])(1\.(?:1[6-9]|2\d)(?:\.\d{1,2})?)(?![\d])")
 
+# La linea que el propio juego escribe al arrancar. Es la fuente mas fiable de
+# la version del loader: no es lo que el pack dice que usa, es lo que uso.
+RE_LOG_LOADER = re.compile(
+    r"Loading Minecraft ([\d.]+) with (Fabric|Quilt) Loader ([\d.+\w-]+)", re.I
+)
+
+
 # La consola de Windows es cp1252 y los nombres de mod traen Unicode.
 for _flujo in (sys.stdout, sys.stderr):
     if hasattr(_flujo, "reconfigure"):
@@ -275,6 +282,38 @@ def localizar_raiz(ruta: Path) -> Path:
     return ruta
 
 
+def loader_del_log(raiz: Path) -> dict | None:
+    """
+    Saca version de MC y del loader del log del juego.
+
+    Una carpeta de instancia normal (Modrinth App, launcher oficial) no trae
+    ningun fichero de metadatos, asi que sin esto 'version_loader' se quedaba
+    siempre en '?'. Y ese dato importa: un mod compilado contra un loader mas
+    nuevo del que corre el pack NO CARGA, y no da ningun error.
+    """
+    for patron in ("logs/latest.log", "logs/*.log", "logs/*.log.gz"):
+        candidatos = sorted(raiz.glob(patron), key=lambda p: -p.stat().st_mtime)
+        for log in candidatos[:6]:
+            try:
+                if log.suffix == ".gz":
+                    import gzip
+                    crudo = gzip.open(log, "rt", encoding="utf-8",
+                                      errors="replace").read(200_000)
+                else:
+                    crudo = log.read_text("utf-8", "replace")[:200_000]
+            except OSError:
+                continue
+            m = RE_LOG_LOADER.search(crudo)
+            if m:
+                return {
+                    "minecraft": m.group(1),
+                    "loader": m.group(2).lower(),
+                    "version_loader": m.group(3),
+                    "fuente_loader": f"{log.name} (el juego lo dijo al arrancar)",
+                }
+    return None
+
+
 def escanear(ruta: Path, detalle: bool = False) -> dict:
     indice = {
         "ruta": str(ruta),
@@ -282,6 +321,7 @@ def escanear(ruta: Path, detalle: bool = False) -> dict:
         "minecraft": "?",
         "loader": "?",
         "version_loader": "?",
+        "fuente_loader": "?",
         "superficies": {},
         "mods": [],
         "anidados": [],
@@ -326,6 +366,19 @@ def escanear(ruta: Path, detalle: bool = False) -> dict:
             elif "fabric" in uid or "forge" in uid or "quilt" in uid:
                 indice["loader"] = uid.split(".")[-1]
                 indice["version_loader"] = comp.get("version", "?")
+
+    # Una carpeta de instancia no trae metadatos: el dato bueno esta en el log
+    # del propio juego. Solo se usa si no lo hemos sacado ya de otro sitio.
+    if indice["version_loader"] == "?":
+        del_log = loader_del_log(raiz)
+        if del_log:
+            indice["loader"] = del_log["loader"]
+            indice["version_loader"] = del_log["version_loader"]
+            indice["fuente_loader"] = del_log["fuente_loader"]
+            if indice["minecraft"] == "?":
+                indice["minecraft"] = del_log["minecraft"]
+    elif indice["fuente_loader"] == "?":
+        indice["fuente_loader"] = "metadatos de la instancia"
 
     carpeta_mods = raiz / "mods"
     if not carpeta_mods.is_dir():
